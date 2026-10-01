@@ -19,7 +19,7 @@ chmod 755 /build/bazel
 cd source
 [[ $(cat .bazelversion) == 9.1.1 ]]
 printf 'build:linux --repo_env=CC=/usr/lib/llvm-19/bin/clang\nbuild:linux --repo_env=AR=/usr/lib/llvm-19/bin/llvm-ar\nbuild:linux --linkopt=--ld-path=/usr/lib/llvm-19/bin/ld.lld\nbuild:linux --host_linkopt=--ld-path=/usr/lib/llvm-19/bin/ld.lld\n' > /build/builder.bazelrc
-/build/bazel --bazelrc=.bazelrc --bazelrc=/build/builder.bazelrc build --config=release_linux --jobs=3 --local_ram_resources=10000 --strip=always --@workerd//src/workerd/server:use_tcmalloc=False //src/workerd/server:workerd
+/build/bazel --bazelrc=.bazelrc --bazelrc=/build/builder.bazelrc build --config=release_linux --jobs=3 --local_resources=memory=10000 --strip=always --@workerd//src/workerd/server:use_tcmalloc=False //src/workerd/server:workerd
 BIN=/build/source/bazel-bin/src/workerd/server/workerd
 "$BIN" --version | tee /out/version.txt
 grep -q '2026-06-25' /out/version.txt
