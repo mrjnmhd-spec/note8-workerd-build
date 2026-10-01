@@ -1,0 +1,35 @@
+name: Build official workerd for Note8
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Build and require native HTTP probe
+        run: |
+          mkdir -p output
+          docker run --rm --platform linux/arm64 \
+            --mount type=bind,src="$PWD/build-arm64.sh",dst=/build-arm64.sh,readonly \
+            --mount type=bind,src="$PWD/output",dst=/out \
+            debian:trixie@sha256:1808211ab6f37c6fc6a75368651697536f7bf47993f2797befa8908b1254979d \
+            bash /build-arm64.sh
+      - name: Require target Ubuntu glibc 2.39 version and HTTP
+        run: |
+          docker run --rm --platform linux/arm64 \
+            --mount type=bind,src="$PWD/probe-ubuntu.sh",dst=/probe-ubuntu.sh,readonly \
+            --mount type=bind,src="$PWD/output",dst=/out \
+            ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf \
+            bash /probe-ubuntu.sh
+      - name: Upload only after build and target HTTP tests pass
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: workerd-1.20260625.1-arm64-system-allocator
+          path: output/
+          if-no-files-found: error
+          retention-days: 7
